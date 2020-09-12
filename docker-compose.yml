@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+  gemstash:
+    build: .
+    restart: always
+    volumes:
+      - gemstash:/home/app/gemstash
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gemstash.rule=Host(`${APP_FQDN:-localhost}`)"
+      - "traefik.http.routers.gemstash.entrypoints=web"
+      - "traefik.http.routers.gemstash.middlewares=redirect-to-https"
+      - "traefik.http.routers.gemstash-tls.rule=Host(`${APP_FQDN:-localhost}`)"
+      - "traefik.http.routers.gemstash-tls.entrypoints=websecure"
+      - "traefik.http.routers.gemstash-tls.tls.certresolver=letsencrypt-tls"
+      - "traefik.http.services.gemstash.loadbalancer.server.port=9292"
+    networks:
+      - traefik_default
+      - default
+
+volumes:
+  gemstash:
+
+networks:
+  traefik_default:
+    external: true
