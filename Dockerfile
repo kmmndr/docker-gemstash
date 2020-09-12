@@ -1,21 +1,23 @@
 FROM alpine:3.12 as base
+RUN sed -i -e 's/^\(.*\)v3.12\/main/@edge-testing \1edge\/testing\n&/' /etc/apk/repositories
 
 RUN apk add --no-cache --virtual ruby-dependencies \
       ncurses readline sqlite sqlite-libs yaml tzdata \
- && apk add --no-cache ruby-full
+ && apk add --no-cache ry@edge-testing
 
 RUN adduser -D -g app app
-ENV PATH=$PATH:/home/app/.gem/ruby/2.7.0/bin
-ENV GEM_HOME ~app/.gems
+ENV RY_PREFIX /home/app/.local
+ENV PATH=$RY_PREFIX/lib/ry/current/bin:$PATH
 
 ###
 FROM base as build
 
 RUN apk add --no-cache sqlite-dev build-base \
- && apk add --no-cache ruby-dev
+ && apk add --no-cache ruby-build@edge-testing
 
 USER app
-RUN gem install --user-install --no-document gemstash
+RUN ry install 2.6.6
+RUN gem install --no-document gemstash
 
 ###
 FROM base
